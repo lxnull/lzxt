@@ -1,0 +1,15 @@
+server:
+  servlet:
+    context-path: /api/sso
+  port: 8118
+
+spring:
+  application:
+    name: xt-sso
+  profiles:
+    active: dev
+
+mybatis-plus:
+  global-config:
+    db-config:
+      table-prefix: t_
