@@ -1,4 +1,4 @@
-package com.lx.xt.sso.model.params;
+package com.lx.xt.sso.model.enums;
 
 public enum LoginType {
     WX(0, "wx");

@@ -1,12 +1,15 @@
 package com.lx.xt.sso.domain.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.lx.xt.common.constants.RedisKey;
 import com.lx.xt.common.wx.config.WxOpenConfig;
 import com.lx.xt.sso.dao.UserMapper;
 import com.lx.xt.sso.dao.data.User;
 import com.lx.xt.sso.domain.LoginDomain;
+import com.lx.xt.sso.domain.UserDomain;
 import com.lx.xt.sso.model.params.LoginParam;
+import com.lx.xt.sso.model.params.UserParam;
 import me.chanjar.weixin.mp.api.WxMpService;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +22,15 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class LoginDomainRepository {
-    @Resource
-    private UserMapper userMapper;
+
     @Autowired
     public StringRedisTemplate redisTemplate;
     @Autowired
     public WxMpService wxMpService;
     @Autowired
     private WxOpenConfig wxOpenConfig;
+    @Autowired
+    private UserDomainRepository userDomainRepository;
 
     public LoginDomain createDomain(LoginParam loginParam) {
         return new LoginDomain(this, loginParam);
@@ -51,13 +55,7 @@ public class LoginDomainRepository {
         return url;
     }
 
-    public User findUserByUnionId(String unionId) {
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        // limit 1:只查一条，查到结果就不往下检索了
-        queryWrapper.eq(User::getUnionId, unionId).last("limit 1");
-        return userMapper.selectOne(queryWrapper);
-    }
-
-    public void saveUser(User user) {
+    public UserDomain createUserDomain(UserParam userParam) {
+        return userDomainRepository.createDomain(userParam);
     }
 }

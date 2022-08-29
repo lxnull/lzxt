@@ -7,11 +7,11 @@ import com.lx.xt.common.utils.JwtUtil;
 import com.lx.xt.sso.dao.data.User;
 import com.lx.xt.sso.domain.repository.LoginDomainRepository;
 import com.lx.xt.sso.model.params.LoginParam;
-import com.lx.xt.sso.model.params.LoginType;
+import com.lx.xt.sso.model.enums.LoginType;
+import com.lx.xt.sso.model.params.UserParam;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.bean.result.WxMpOAuth2AccessToken;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
-import org.joda.time.DateTime;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +26,7 @@ public class LoginDomain {
     
     private LoginParam loginParam;
 
-    private String security = "lx@8862";
+    public static final String security = "lx@8862";
     
     public LoginDomain(LoginDomainRepository loginDomainRepository, LoginParam loginParam) {
         this.loginDomainRepository = loginDomainRepository;
@@ -71,7 +71,8 @@ public class LoginDomain {
             WxMpUser wxMpUser = loginDomainRepository.wxMpService.oauth2getUserInfo(wxMpOAuth2AccessToken, "zh_CN");
             String unionId = wxMpUser.getUnionId();
             // 4.需要判断unionId在user表中是否存在，存在就更新最后登录时间，不存在就注册
-            User user = loginDomainRepository.findUserByUnionId(unionId);
+            User user = this.loginDomainRepository.createUserDomain(new UserParam()).findUserByUnionId(unionId);
+            boolean isNew = false;
             if (user == null) {
                 // 注册
                 user = new User();
@@ -92,7 +93,8 @@ public class LoginDomain {
                 user.setGrade("");
                 user.setName(wxMpUser.getNickname());
                 user.setSchool("");
-                loginDomainRepository.saveUser(user);
+                this.loginDomainRepository.createUserDomain(new UserParam()).saveUser(user);
+                isNew = true; // 新用户
             }
             // 5.完成登录操作，通过jwt生成token，
             String token = JwtUtil.createJWT(7 * 24 * 60 * 60 * 1000, user.getId(), security);
@@ -123,7 +125,12 @@ public class LoginDomain {
             System.out.println("jwt_token: " + token);
             System.out.println();
 
-            // 8.需要记录日志，记录当前用户的登录行为
+            // 8.需要记录日志，记录当前用户的登录行为 MQ+mongodb 进行日志记录
+            // 9.更新用户的最后登录时间
+            if (!isNew) {
+                user.setLastLoginTime(System.currentTimeMillis());
+                this.loginDomainRepository.createUserDomain(new UserParam()).updateUser(user);
+            }
             return CallResult.success();
         } catch (WxErrorException e) {
             e.printStackTrace();

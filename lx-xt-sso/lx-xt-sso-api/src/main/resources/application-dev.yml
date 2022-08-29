@@ -13,12 +13,12 @@ wx:
   open:
     config:
       # 微信开放平台创建的网站应用的appid
-      appid:
+      appid: wxa8ce032dc6a5b5f8
       # 微信开放平台创建的网站应用的appsecret
-      secret:
+      secret: a52c9079df990938ee0511e7f2c87d2d
       # 登录作用域
-      scope:
+      scope: snsapi_login
       # 回调认证状态，用于认证回调的有效性
-      csrfkey:
+      csrfKey: mszlu_xt
       # 微信开放平台创建的网站 设置的授权回调域
-      redirectUrl:
+      redirectUrl: http://www.lzxtedu.com/api/sso/login/wxLoginCallBack
